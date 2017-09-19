@@ -201,7 +201,7 @@ public class UvcWebCamSettings : MonoBehaviour
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Codec : ", GUILayout.Width(60));
-            int _codec = GUILayout.SelectionGrid(codecNum, CodecList, 5);
+            codecNum = GUILayout.SelectionGrid(codecNum, CodecList, 5);
             settings.codec = CodecList[codecNum];
             GUILayout.EndHorizontal();
 
@@ -228,7 +228,7 @@ public class UvcWebCamSettings : MonoBehaviour
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Brightness : ", GUILayout.Width(80));
-            int _b = (int)GUILayout.HorizontalSlider((float)settings.brightness, -64, 64);
+            int _b = (int)GUILayout.HorizontalSlider((float)settings.brightness,0, 255);
             GUILayout.Label(settings.brightness.ToString("f0"), GUILayout.Width(30));
             GUILayout.EndHorizontal();
             if (settings.brightness != _b)
@@ -240,7 +240,7 @@ public class UvcWebCamSettings : MonoBehaviour
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Contrast : ", GUILayout.Width(80));
-            int _c = (int)GUILayout.HorizontalSlider((float)settings.contrast, 0, 64);
+            int _c = (int)GUILayout.HorizontalSlider((float)settings.contrast, 0, 255);
             GUILayout.Label((settings.contrast).ToString("f0"), GUILayout.Width(30));
             GUILayout.EndHorizontal();
             if (settings.contrast != _c)
@@ -365,22 +365,22 @@ public class UvcWebCamSettings : MonoBehaviour
     public void OpenCamera()
     {
         if (settings.cameraNum >= devices.Length) {
-            Debug.LogWarning("[ OpenCvCamera ] Camera[ " + settings.cameraNum + " ] is not exit.");
+            Debug.LogWarning("[ UvcWebCamSettings ] Camera[ " + settings.cameraNum + " ] is not exit.");
             return;
         }
         if (renderCoroutine != null) {
             OnDestroy();
         }
 
-        Debug.Log("[ OpenCvCamera ] OpenCamera( " + settings.cameraNum + ", " + settings.width + ", " + settings.height + ", " + settings.fps + ", " + settings.codec + ")");
+        Debug.Log("[ UvcWebCamSettings ] OpenCamera( " + settings.cameraNum + ", " + settings.width + ", " + settings.height + ", " + settings.fps + ", " + settings.codec + ")");
         camera_ = GetCamera(settings.cameraNum, settings.width, settings.height, settings.fps, settings.codec);
         if (camera_ != IntPtr.Zero)
         {
-            Debug.Log("[ OpenCvCamera ] Camera[ " + settings.cameraNum + " ] : " + devices[settings.cameraNum].name + " open. ( " + GetCameraWidth(camera_) + ", " + GetCameraHeight(camera_) + " : " + GetCameraFps(camera_) + ")");
+            Debug.Log("[ UvcWebCamSettings ] Camera[ " + settings.cameraNum + " ] : " + devices[settings.cameraNum].name + " open. ( " + GetCameraWidth(camera_) + ", " + GetCameraHeight(camera_) + " : " + GetCameraFps(camera_) + ")");
         }
         else
         {
-            Debug.Log("[ OpenCvCamera ] Camera[ " + settings.cameraNum + " ] : " + devices[settings.cameraNum].name + ", couldn't open.");
+            Debug.Log("[ UvcWebCamSettings ] Camera[ " + settings.cameraNum + " ] : " + devices[settings.cameraNum].name + ", couldn't open.");
         }
 
         var tex = new Texture2D(
@@ -401,7 +401,7 @@ public class UvcWebCamSettings : MonoBehaviour
     {
         if (renderCoroutine != null)
         {
-            Debug.Log("[ OpenCvCamera ] Pause");
+            Debug.Log("[ UvcWebCamSettings ] Pause");
             StopCoroutine(renderCoroutine);
         }
         renderCoroutine = null;
@@ -411,7 +411,7 @@ public class UvcWebCamSettings : MonoBehaviour
     {
         if (renderCoroutine == null)
         {
-            Debug.Log("[ OpenCvCamera ] Resume");
+            Debug.Log("[ UvcWebCamSettings ] Resume");
             renderCoroutine = StartCoroutine(OnRender());
         }
     }
@@ -423,7 +423,7 @@ public class UvcWebCamSettings : MonoBehaviour
 
         ReleaseCamera(camera_);
         camera_ = IntPtr.Zero;
-        Debug.Log("[ OpenCvCamera ] Release");
+        Debug.Log("[ UvcWebCamSettings ] Release");
 	}
 
     void updateDeviceList()
@@ -433,7 +433,7 @@ public class UvcWebCamSettings : MonoBehaviour
         // display all cameras
         for (var i = 0; i < devices.Length; i++)
         {
-            Debug.Log("[ OpenCvCamera ] Camera[ " + i + " ] : " + devices[i].name);
+            Debug.Log("[ UvcWebCamSettings ] Camera[ " + i + " ] : " + devices[i].name);
             deviceNameList[i] = devices[i].name;
         }
     }
@@ -449,7 +449,7 @@ public class UvcWebCamSettings : MonoBehaviour
 
     public bool SaveSettings()
     {
-        Debug.Log("[ OpenCvCamera ] SaveSettings( " + fileName + " )");
+        Debug.Log("[ UvcWebCamSettings ] SaveSettings( " + fileName + " )");
 
         var serializer = new XmlSerializer(typeof(OpenCvCameraSettings));
         using (var stream = new FileStream(fileName, FileMode.Create))
@@ -461,11 +461,11 @@ public class UvcWebCamSettings : MonoBehaviour
 
     public bool LoadSettings()
     {
-        Debug.Log("[ OpenCvCamera ] LoadSettings( " + fileName + " )");
+        Debug.Log("[ UvcWebCamSettings ] LoadSettings( " + fileName + " )");
 
         if (!System.IO.File.Exists(fileName))
         {
-            Debug.LogWarning("[ OpenCvCamera ] " + fileName + " is not exists.");
+            Debug.LogWarning("[ UvcWebCamSettings ] " + fileName + " is not exists.");
             return false;
         }
         var serializer = new XmlSerializer(typeof(OpenCvCameraSettings));
@@ -474,7 +474,19 @@ public class UvcWebCamSettings : MonoBehaviour
             settings = (OpenCvCameraSettings)serializer.Deserialize(stream);
         }
 
-        for(int i = 0; i < CodecList.Length; i++)
+        // set
+        /*
+        SetCameraBrightness(camera_, settings.brightness);
+        Debug.Log("Brightness : " + GetCameraBrightness(camera_));
+        SetCameraContrast(camera_, settings.contrast);
+        Debug.Log("Contrast : " + GetCameraContrast(camera_));
+        SetCameraSaturation(camera_, settings.saturation);
+        Debug.Log("Saturation : " + GetCameraSaturation(camera_));
+        SetCameraExposure(camera_, settings.exposure);
+        Debug.Log("Exposure : " + GetCameraExposure(camera_));
+        */
+
+        for (int i = 0; i < CodecList.Length; i++)
         {
             if (CodecList[i] == settings.codec)
             {
@@ -482,7 +494,7 @@ public class UvcWebCamSettings : MonoBehaviour
                 return true;
             }
         }
-        Debug.LogWarning("[ OpenCvCamera ] codec " + settings.codec + " is not exists.");
+        Debug.LogWarning("[ UvcWebCamSettings ] codec " + settings.codec + " is not exists.");
         return false;
     }
 
